@@ -3,34 +3,36 @@
 
 # Gamelist中文翻译工具（AI 大模型驱动版）
 
-一个Emulation Station的gamelist.xml中文翻译脚本工具。将gamelist.xml中的英文的游戏名称和游戏描述翻译为简体中文。
-主要用于对 Batocera 和 Retrobat 模拟器的gamelis.xml游戏列表文件进行中文翻译。
+一个 Emulation Station 系统下的 gamelist.xml 文件的中文翻译脚本工具。用于将 gamelist.xml 中的英文的游戏名称和游戏描述翻译为简体中文。
+可用于对 Batocera 和 Retrobat 模拟器的gamelis.xml游戏列表文件进行中文翻译。
 
+项目地址：
+https://github.com/hanb102400/GamelistToZh
 
 ## 初衷：
 
-因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂编码，因此出资50元找计算机系的学生帮忙写了个python脚本工具。代码已经买断，所以现在这个翻译脚本工具可以随意修改使用。
+因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂代码，出资50元找计算机系的学生抽空帮忙写了个python脚本工具。代码已经买断可以随意修改使用。
 
-翻译过程截图如下：
+翻译过程的截图：
 
 ![info1.png](images/info1.png)
 
 
 ## 功能描述：
 
-主要用于翻译 Emulation Station 的gamelist.xml。 支持将 Batocera 和 Retrobat 模拟器的 gamelist.xml 文件中的 游戏名称 和 游戏描述 翻译为简体中文。
+使用大模型AI翻译 Emulation Station 系统下的 gamelist.xml 文件的游戏名称和游戏描述并重新生成翻译后的gamelist.xml进行替换。 
 
 
 ## 一些其他的说明
 
-1. 首先需要你有一个AI大语言模型的账号，翻译依赖AI大模型API调用。
+1. 首先需要你有一个AI大语言模型的账号，翻译脚本依赖AI大模型的API调用。
 2. 目前支持6家：deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi。你可以随便选一家去申请个免费试用账号来使用。
 3. 建议使用各家的推理模型。虽然速度比较慢但是准确率有保证。基础模型翻译速度快但对游戏名称翻译可能不准确或无法识别。
-4. 目前我用的Doubao-1.5-pro模型，大概平均6秒翻译完一个游戏。供参考。
+4. 目前我用的Doubao-1.5-pro模型，大概平均6秒翻译完一个游戏。速度仅供参考，准确度取决于你用的模型。
 5. 翻译时默认先查database目录下面的本地中英文对照库的csv文件集，不想走本地缓存的删掉database目录内容即可。
-6. database目录是本人使用deepseek推理模型，基于MAME的ROM集,ScreenScraper的元数据跑的csv文件集合。
-7. database目录下本人可能会不定期更新本地数据库(也可能不更新...）。
-8. 翻译完成后，生成新的gamelist.xml。原始的gamelist.xml会在游戏目录备份。
+6. database目录是本人使用Doubao-1.5-pro推理模型，基于NoIntro的ROM集和ScreenScraper的元数据跑的csv文件集合。
+7. database目录下本人可能会不定期更新本地中英文对照数据库(也可能不更新...）。
+8. 翻译完成后，生成新的gamelist.xml。同时原始的gamelist.xml会在Rom目录备份。
 9. 代码是买的，本人不懂技术，没有技术支持，有啥问题还请自行解决。
 10. 没了
 
@@ -39,66 +41,74 @@
 ### 1. 注册大模型API账号
 
 首先注册你的大模型的API账号。目前支持以下几种：
+
 deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi这6种。
 
-### 2. 修改脚本bat配置
+目前我使用的大模型时豆包的Doubao-1.5-pro，测试OK，其他大模型产品没有仔细测试。
 
-目前我用的话，只测试了我需要用的的豆包的Doubao-1.5-pro模型的接入功能。
+### 2. 下载脚本到本地 
 
-修改GamelistToZh.bat文件，将下面的配置改为自己申请的。配置完成后保存。
+下载脚本的zip包到本地目录，并解压。
+
+注意：解压出来的database目录是我自己用AI跑的中英文对照库。做缓存使用。你可能想自己的模型跑，不需要使用我的已有翻译，可以删除这个目录内容。
+
+
+### 3. 修改脚本bat配置
+
+注册完账号后修改GamelistToZh.bat文件，将下面的配置改为自己申请的账号。配置完成后保存。
 
 配置说明：
 
-> ai：你的实际模型产品。目前支持deepseek,豆包，通义千问，腾讯混元，讯飞星火，kimi这6种
+> ai：你的模型是哪家的产品。目前支持deepseek,豆包，通义千问，腾讯混元，讯飞星火，kimi这6种
 >
-> model：你的实际模型名称
+> model：你的模型类型
 >
-> api_key： 你的实际API密钥
+> api_key： 你的API密钥
 
 deepseek配置如下：
 ```
 set "ai=deepseek"					                :: 请替换为你的实际模型产品
-set "model=deepseek-reasoner"        			    :: 请替换为你的实际模型名称
+set "model=deepseek-reasoner"        			    :: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
 ```
 
 豆包火山引擎配置如下：
 ```
 set "ai=doubao"					                    :: 请替换为你的实际模型产品
-set "model=doubao-1-5-pro-32k-250115"        	            :: 请替换为你的实际模型名称
+set "model=doubao-1-5-pro-32k-250115"        	            :: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  		:: 请替换为你的实际API密钥
 ```
 
 通义千问配置如下：
 ```
 set "ai=qianwen"					                :: 请替换为你的实际模型产品
-set "model=qwen-max"                                :: 请替换为你的实际模型名称
+set "model=qwen-max"                                :: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
 ```    				
 
 腾讯混元配置如下：
 ```
 set "ai=hunyuan"							    	:: 请替换为你的实际模型产品
-set "model=hunyuan-t1-latest"  						:: 请替换为你的实际模型名称
+set "model=hunyuan-t1-latest"  						:: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
 ```
 
 讯飞星火配置如下：
 ```
 set "ai=xinghuo"					    			:: 请替换为你的实际模型产品
-set "model=qwen-max"    							:: 请替换为你的实际模型名称
+set "model=qwen-max"    							:: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
 ```
 
 kimi配置如下：
 ```
 set "ai=kimi"							        :: 请替换为你的实际模型产品
-set "model=kimi-latest"  						:: 请替换为你的实际模型名称
+set "model=kimi-latest"  						:: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API密钥
 ```
 
 
-### 3. 执行脚本翻译gamelist文件
+### 4. 执行bat脚本翻译gamelist文件
 
 打开Windows Powershell命令行，拖入GamelistToZh.bat脚本文件，输入空格，拖入需要翻译的gamelist.xml文件，输入回车,即可执行翻译脚本进行翻译。
 
@@ -106,13 +116,13 @@ set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API�
 
 ![info2.png](images/info2.png)
 
-翻译结果如图：
+翻译完成信息打印：
 
 ![info3.png](images/info3.png)
 
-### 4. 翻译效果
+### 5. 翻译效果
 
-Retrobat加载翻译好的gamelist.xml文件效果如下：
+Retrobat加载翻译后的gamelist.xml文件效果如下：
 
 ![info4.png](images/info4.png)
 

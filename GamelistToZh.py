@@ -166,17 +166,18 @@ def translate_content(ai_type, api_key, model, name, desc):
             try:
                 result = json.loads(translated_text)
             except json.JSONDecodeError:
-                # 如果不是JSON，尝试手动提取
-                fixed_text = fix_json(translated_text)
-                result = json.loads(fixed_text)  # 成功解析
-                if 'name_zh' in result and 'desc_zh' in result:
-                    return result, elapsed
-                elif 'name_zh' in result:  # 只有名称的情况
-                    return {"name_zh": result['name_zh'], "desc_zh": desc}, elapsed
-            except json.JSONDecodeError:
-                print(f"解析JSON失败，尝试文本匹配: {translated_text}")
-                pass
-            
+                try:
+                    # 如果不是JSON，尝试手动提取
+                    fixed_text = fix_json(translated_text)
+                    result = json.loads(fixed_text)  # 成功解析
+                    if 'name_zh' in result and 'desc_zh' in result:
+                        return result, elapsed
+                    elif 'name_zh' in result:  # 只有名称的情况
+                        return {"name_zh": result['name_zh'], "desc_zh": desc}, elapsed
+                except json.JSONDecodeError:
+                    print(f"解析JSON失败，尝试文本匹配: {translated_text}")
+                    pass
+                
             # 手动提取名称和描述
             name_match = re.search(r'(?:"name_zh"\s*:\s*")(.*?)(?:"|$)', translated_text)
             desc_match = re.search(r'(?:"desc_zh"\s*:\s*")(.*?)(?:"|$)', translated_text)
@@ -197,25 +198,13 @@ def translate_content(ai_type, api_key, model, name, desc):
                     "desc_zh": desc
                 }, elapsed
             
-            # 最后尝试分割
-            parts = translated_text.split("\n\n", 1)
-            if len(parts) >= 1:
-                # 清理可能的标签
-                clean_name = parts[0].replace("游戏名称：", "").replace("名称：", "").strip()
-                clean_desc = parts[1].replace("游戏描述：", "").replace("描述：", "").strip() if len(parts) > 1 else desc
-                
-                return {
-                    "name_zh": clean_name,
-                    "desc_zh": clean_desc
-                }, elapsed
-                
             print(f"无法解析API返回的内容: {translated_text[:200]}...")
             return None, elapsed
             
         except Exception as e:
             elapsed = timeit.default_timer() - start_time if 'start_time' in locals() else 0
             error_msg = str(e)
-            
+
             # 特殊处理速率限制错误
             if "429" in error_msg:
                 # 尝试从响应头获取重试时间
@@ -439,6 +428,9 @@ def main():
                 continue
                 
             result_data, api_time = result
+            if not result_data:
+                print(f"翻译失败: {name_text}")
+                continue
             name_zh = result_data.get('name_zh', name_text)  # 确保有名称
             desc_zh = result_data.get('desc_zh', desc_text)  # 确保有描述
             
