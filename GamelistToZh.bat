@@ -2,8 +2,8 @@
 setlocal
 
 :: 设置AI相关参数
-set "ai=doubao"					                :: 请替换为你的实际模型产品
-set "model=deepseek-r1-250528"        			    :: 请替换为你的实际模型名称
+set "ai=doubao"					:: 请替换为你的实际模型产品
+set "model=doubao-1-5-pro-32k-250115"        	:: 请替换为你的实际模型名称
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API密钥
 
 

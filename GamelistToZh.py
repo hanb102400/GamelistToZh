@@ -18,6 +18,17 @@ def calculate_md5(text):
     """计算字符串的MD5哈希值"""
     return hashlib.md5(text.encode('utf-8')).hexdigest()
 
+# 修复：将字符串中的换行符替换为转义形式 \n
+def fix_json(text):
+    # 匹配双引号内的内容并替换换行符
+    import re
+    return re.sub(
+        r'"(.*?)"', 
+        lambda m: '"' + m.group(1).replace('\n', '\\n') + '"',
+        text,
+        flags=re.DOTALL
+    )
+    
 def translate_content(ai_type, api_key, model, name, desc):
     """
     使用指定的AI模型翻译游戏名称和描述
@@ -33,12 +44,13 @@ def translate_content(ai_type, api_key, model, name, desc):
     system_prompt = (
         "你是一位专业的复古模拟游戏本地化翻译家，负责将游戏名称和描述翻译成简体中文。\n"
         "请遵守以下规则：\n"
-        "1. 游戏名称优先使用中文官方译名或中文通用译名\n"
-        "2. 游戏名称做展示使用，保留最原始的翻译内容\n"
+        "1. 游戏名称优先使用中文官方译名或中文常用译名\n"
+        "2. 游戏名称翻译后不要有《》书名号\n"
         "3. 游戏描述要流畅自然，保持原有段落结构\n"
         "4. 保留所有特殊符号和格式（如换行符、引号等）\n"
         "5. 技术术语（如游戏类型、机制）要准确翻译\n"
-        "6. 返回结果必须是严格的JSON格式: {\"name_zh\": \"中文名称\", \"desc_zh\": \"中文描述\"}"
+        "6. 游戏名称含义不明和翻译信息不足的返回空文本\n"
+        "7. 返回结果必须是严格的JSON格式: {\"name_zh\": \"中文名称\", \"desc_zh\": \"中文描述\"}"
     )
     
     # 用户请求内容
@@ -153,12 +165,16 @@ def translate_content(ai_type, api_key, model, name, desc):
             # 尝试解析JSON
             try:
                 result = json.loads(translated_text)
+            except json.JSONDecodeError:
+                # 如果不是JSON，尝试手动提取
+                fixed_text = fix_json(translated_text)
+                result = json.loads(fixed_text)  # 成功解析
                 if 'name_zh' in result and 'desc_zh' in result:
                     return result, elapsed
                 elif 'name_zh' in result:  # 只有名称的情况
                     return {"name_zh": result['name_zh'], "desc_zh": desc}, elapsed
             except json.JSONDecodeError:
-                # 如果不是JSON，尝试手动提取
+                print(f"解析JSON失败，尝试文本匹配: {translated_text}")
                 pass
             
             # 手动提取名称和描述
@@ -244,8 +260,8 @@ def load_database_cache(script_dir):
                         cache[game_id] = {
  							'file': row.get('FILE', ''),  
                             'name': row['NAME'],
-                            'desc': row['DESC'],
                             'name_zh': row['NAME_ZH'],
+                            'desc': row['DESC'],
                             'desc_zh': row['DESC_ZH']
                         }
             except Exception as e:
@@ -326,7 +342,7 @@ def main():
     cache_file_handle = open(cache_file, 'a', encoding='utf-8', newline='')
     
     # 字段列表
-    fieldnames = ['ID', 'FILE', 'NAME', 'DESC', 'NAME_ZH', 'DESC_ZH']
+    fieldnames = ['ID', 'FILE', 'NAME', 'NAME_ZH', 'DESC', 'DESC_ZH']
     cache_writer = csv.DictWriter(cache_file_handle, fieldnames=fieldnames)
     
     # 如果文件不存在或为空，写入标题
@@ -426,8 +442,15 @@ def main():
             name_zh = result_data.get('name_zh', name_text)  # 确保有名称
             desc_zh = result_data.get('desc_zh', desc_text)  # 确保有描述
             
+            # 转换特殊字符
+            desc_zh = desc_zh.replace(r'\n', '\n')
+            
+            if name_zh is None or len(name_zh) == 0:
+                print(f"信息不足，翻译失败")
+                continue
+            
             # 验证翻译结果
-            if name_zh == name_text:
+            if name_zh == name_text and desc_zh == desc_text:
                 print(f"翻译可能未成功: {name_text} -> {name_zh}")
                 continue
             
@@ -450,8 +473,8 @@ def main():
             'ID': game_id,
             'FILE': file_name,  # 添加FILE字段
             'NAME': name_text,
-            'DESC': desc_text,
             'NAME_ZH': name_zh,
+            'DESC': desc_text,
             'DESC_ZH': desc_zh
         }
         cache_writer.writerow(cache_record)
@@ -528,34 +551,7 @@ def main():
                     os.rename(cache_file, db_file)
                     print(f"已保存数据库缓存: {db_file}")
                 else:
-                    # 合并到现有数据库
-                    existing_data = []
-                    if os.path.exists(db_file):
-                        with open(db_file, 'r', encoding='utf-8') as f:
-                            reader = csv.DictReader(f)
-                            existing_data = list(reader)
-                    
-                    # 创建ID集合用于去重
-                    existing_ids = {row['ID'] for row in existing_data}
-                    
-                    # 添加新数据
-                    new_count = 0
-                    # 读取当前缓存文件内容
-                    with open(cache_file, 'r', encoding='utf-8') as f:
-                        reader = csv.DictReader(f)
-                        for row in reader:
-                            if row['ID'] not in existing_ids:
-                                existing_data.append(row)
-                                new_count += 1
-                    
-                    # 保存合并后的数据
-                    with open(db_file, 'w', encoding='utf-8', newline='') as f:
-                        writer = csv.DictWriter(f, fieldnames=fieldnames)
-                        writer.writeheader()
-                        writer.writerows(existing_data)
-                    
-                    print(f"已合并 {new_count} 条新记录到数据库")
-                    os.remove(cache_file)
+                    print(f"数据库缓存已存在: {db_file}")
         else:
             # 直接删除缓存文件
             if os.path.exists(cache_file):

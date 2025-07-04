@@ -9,7 +9,7 @@
 
 ## 初衷：
 
-因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂编码，因此花费50元找计算机系的学生帮忙写了个python脚本工具，然后又花了8元买断。所以现在这个翻译脚本工具可以随意修改使用。
+因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂编码，因此出资50元找计算机系的学生帮忙写了个python脚本工具。代码已经买断，所以现在这个翻译脚本工具可以随意修改使用。
 
 翻译过程截图如下：
 
@@ -26,9 +26,9 @@
 1. 首先需要你有一个AI大语言模型的账号，翻译依赖AI大模型API调用。
 2. 目前支持6家：deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi。你可以随便选一家去申请个免费试用账号来使用。
 3. 建议使用各家的推理模型。虽然速度比较慢但是准确率有保证。基础模型翻译速度快但对游戏名称翻译可能不准确或无法识别。
-4. 推理模型翻译速度测试大概40秒左右翻译完一个游戏。比较慢，需求翻译快的可以退出换下一个工具了。
+4. 目前我用的Doubao-1.5-pro模型，大概平均6秒翻译完一个游戏。供参考。
 5. 翻译时默认先查database目录下面的本地中英文对照库的csv文件集，不想走本地缓存的删掉database目录内容即可。
-6. database目录是本人使用deepseek推理模型，基于MAME的ROM集的跑的csv文件集合。
+6. database目录是本人使用deepseek推理模型，基于MAME的ROM集,ScreenScraper的元数据跑的csv文件集合。
 7. database目录下本人可能会不定期更新本地数据库(也可能不更新...）。
 8. 翻译完成后，生成新的gamelist.xml。原始的gamelist.xml会在游戏目录备份。
 9. 代码是买的，本人不懂技术，没有技术支持，有啥问题还请自行解决。
@@ -43,7 +43,7 @@ deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi这6种。
 
 ### 2. 修改脚本bat配置
 
-目前我用的话，只测试了我需要的deepseek的接入功能。
+目前我用的话，只测试了我需要用的的豆包的Doubao-1.5-pro模型的接入功能。
 
 修改GamelistToZh.bat文件，将下面的配置改为自己申请的。配置完成后保存。
 
@@ -65,7 +65,7 @@ set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际A
 豆包火山引擎配置如下：
 ```
 set "ai=doubao"					                    :: 请替换为你的实际模型产品
-set "model=doubao-1-5-thinking-pro-250415"        	            :: 请替换为你的实际模型名称
+set "model=doubao-1-5-pro-32k-250115"        	            :: 请替换为你的实际模型名称
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  		:: 请替换为你的实际API密钥
 ```
 
@@ -106,7 +106,7 @@ set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API�
 
 ![info2.png](images/info2.png)
 
-翻译结构如图：
+翻译结果如图：
 
 ![info3.png](images/info3.png)
 
