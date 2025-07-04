@@ -53,7 +53,7 @@ deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi这6种。
 >
 > model：你的实际模型名称
 >
-> api_key:: 你的实际API密钥
+> api_key： 你的实际API密钥
 
 deepseek配置如下：
 ```
