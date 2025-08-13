@@ -49,8 +49,9 @@ def translate_content(ai_type, api_key, model, name, desc):
         "3. 游戏描述要流畅自然，保持原有段落结构\n"
         "4. 保留所有特殊符号和格式（如换行符、引号等）\n"
         "5. 技术术语（如游戏类型、机制）要准确翻译\n"
-        "6. 游戏名称含义不明和翻译信息不足的返回空文本\n"
-        "7. 返回结果必须是严格的JSON格式: {\"name_zh\": \"中文名称\", \"desc_zh\": \"中文描述\"}"
+        "6. 翻译失败时返回空文本\n"
+        "7. 返回结果为JSON内容，格式如下: {\"name_zh\": \"中文名称\", \"desc_zh\": \"中文描述\"}\n"
+        "8. 返回结果直接只输出JSON内容，不要输出推理过程和引用"
     )
     
     # 用户请求内容
@@ -77,7 +78,7 @@ def translate_content(ai_type, api_key, model, name, desc):
     
     # doubao API配置
     elif ai_type == "doubao":
-        url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+        url = "https://ark.cn-beijing.volces.com/api/v3/bots/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -164,6 +165,7 @@ def translate_content(ai_type, api_key, model, name, desc):
             
             # 尝试解析JSON
             try:
+                translated_text = translated_text.lstrip('```json').rstrip('```')
                 result = json.loads(translated_text)
             except json.JSONDecodeError:
                 try:
@@ -220,7 +222,7 @@ def translate_content(ai_type, api_key, model, name, desc):
             # 最后一次尝试失败后返回错误
             if attempt == max_retries - 1:
                 print(f"{ai_type} API调用失败，已达最大重试次数")
-                return None, elapsed
+                sys.exit(1)
             
             # 指数退避策略
             print(f"{retry_delay}秒后重试...")
@@ -403,9 +405,8 @@ def main():
             if desc_elem is not None:
                 desc_elem.text = desc_zh
             continue
-            
-        # 检查本地缓存
-        game_id = calculate_md5(name_text.strip())
+        
+        
         if args.local_db and game_id in database_cache:
             cache_entry = database_cache[game_id]
             name_zh = cache_entry['name_zh']

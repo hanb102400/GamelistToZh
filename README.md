@@ -3,114 +3,93 @@
 
 # Gamelist中文翻译工具（AI 大模型驱动版）
 
-一个 Emulation Station 系统下的 gamelist.xml 文件的中文翻译脚本工具。用于将 gamelist.xml 中的英文的游戏名称和游戏描述翻译为简体中文。
-可用于对 Batocera 和 Retrobat 模拟器的gamelis.xml游戏列表文件进行中文翻译。
+一个 Emulation Station 系统下的 gamelist.xml 文件的AI中文翻译脚本工具。调用AI大模型将 gamelist.xml 中的英文的游戏名称和游戏描述翻译为简体中文。可用于对 Batocera 和 Retrobat 模拟器的gamelis.xml游戏列表文件进行中文翻译。
 
 项目地址：
 https://github.com/hanb102400/GamelistToZh
 
-## 初衷：
-
-因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂代码，出资50元找计算机系的学生抽空帮忙写了个python脚本工具。代码已经买断可以随意修改使用。
-
-翻译过程的截图：
-
-![info1.png](images/info1.png)
-
-
-## 功能描述：
-
-使用大模型AI翻译 Emulation Station 系统下的 gamelist.xml 文件的游戏名称和游戏描述并重新生成翻译后的gamelist.xml进行替换。 
-
-
-## 一些其他的说明
-
-1. 首先需要你有一个AI大语言模型的账号，翻译脚本依赖AI大模型的API调用。
-2. 目前支持6家：deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi。你可以随便选一家去申请个免费试用账号来使用。
-3. 建议使用各家的推理模型。虽然速度比较慢但是准确率有保证。基础模型翻译速度快但对游戏名称翻译可能不准确或无法识别。
-4. 目前我用的Doubao-1.5-pro模型，大概平均6秒翻译完一个游戏。速度仅供参考，准确度取决于你用的模型。
-5. 翻译时默认先查database目录下面的本地中英文对照库的csv文件集，不想走本地缓存的删掉database目录内容即可。
-6. database目录是本人使用Doubao-1.5-pro推理模型，基于NoIntro的ROM集和ScreenScraper的元数据跑的csv文件集合。
-7. database目录下本人可能会不定期更新本地中英文对照数据库(也可能不更新...）。
-8. 翻译完成后，生成新的gamelist.xml。同时原始的gamelist.xml会在Rom目录备份。
-9. 代码是买的，本人不懂技术，没有技术支持，有啥问题还请自行解决。
-10. 没了
-
 ## 使用步骤：
 
-### 1. 注册大模型API账号
+### 1. 注册豆包大模型API账号
 
-首先注册你的大模型的API账号。目前支持以下几种：
+首先注册你的大模型的API账号。
 
-deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi这6种。
+目前推荐使用 豆包火山引擎的deepseek-v3，搭配联网插件使用。
 
-目前我使用的大模型时豆包的Doubao-1.5-pro，测试OK，其他大模型产品没有仔细测试。
+豆包是字节跳动发布的大模型，是字节在火山引擎基础上推出的一系列AI大模型产品，涵盖深度思考、视频生成、音乐创作等多模态能力。
 
-### 2. 下载脚本到本地 
+**(1) 注册API账号：**
+
+地址：https://www.volcengine.com/experience/ark
+
+注册完成后，记住使用大模型的名称和API_KEY。
+
+
+**(2) 开通大语言模型：**
+
+地址：https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=deepseek-v3
+
+目前尝试了最适合的模型是 DeepSeek-V3。平均每一个游戏翻译时间在7秒左右。
+
+开通模型后需要接入联网内容插件，否则游戏名称会翻译不准确。
+
+目前豆包应该是开通大模型会送一定数量的免费token试用。
+
+
+**(3) 创建智能体应用**
+
+进入`火山方舟`——`我的应用页面`
+
+点击`创建应用`——`选择零代码`——`选择单聊`
+
+名称：输入Gamelist翻译
+推理接入点：选择deepseek-v3
+联网内容插件：开启，选择（搜索引擎-互联网公开域内容）
+提示词输入如下：
+```
+       "你是一位专业的复古模拟游戏本地化翻译家，负责将游戏名称和描述翻译成简体中文。\n"
+        "请遵守以下规则：\n"
+        "1. 游戏名称优先使用中文官方译名或中文常用译名\n"
+        "2. 游戏名称翻译后不要有《》书名号\n"
+        "3. 游戏描述要流畅自然，保持原有段落结构\n"
+        "4. 保留所有特殊符号和格式（如换行符、引号等）\n"
+        "5. 技术术语（如游戏类型、机制）要准确翻译\n"
+        "6. 翻译失败时返回空文本\n"
+        "7. 返回结果为JSON内容，格式如下: {\"name_zh\": \"中文名称\", \"desc_zh\": \"中文描述\"}\n"
+        "8. 返回结果直接只输出JSON内容，不要输出推理过程和引用"
+```
+其他内容不需要填写
+
+如图
+
+![info5.png](images/info5.png)
+
+
+### 2. 下载脚本并修改配置
 
 下载脚本的zip包到本地目录，并解压。
 
-注意：解压出来的database目录是我自己用AI跑的中英文对照库。做缓存使用。你可能想自己的模型跑，不需要使用我的已有翻译，可以删除这个目录内容。
-
-
-### 3. 修改脚本bat配置
-
-注册完账号后修改GamelistToZh.bat文件，将下面的配置改为自己申请的账号。配置完成后保存。
+修改解压出来的GamelistToZh.bat文件，将下面的配置改为自己创建的应用和申请的账号。配置完成后保存。
 
 配置说明：
 
-> ai：你的模型是哪家的产品。目前支持deepseek,豆包，通义千问，腾讯混元，讯飞星火，kimi这6种
->
-> model：你的模型类型
+> model：你的模型类型(填入应用)
 >
 > api_key： 你的API密钥
-
-deepseek配置如下：
-```
-set "ai=deepseek"					                :: 请替换为你的实际模型产品
-set "model=deepseek-reasoner"        			    :: 请替换为你的实际模型类型
-set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
-```
 
 豆包火山引擎配置如下：
 ```
 set "ai=doubao"					                    :: 请替换为你的实际模型产品
-set "model=doubao-1-5-pro-32k-250115"        	            :: 请替换为你的实际模型类型
+set "model=bot-20250810194237-cm7fz"        	    :: 请替换为你的实际模型类型
 set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  		:: 请替换为你的实际API密钥
 ```
 
-通义千问配置如下：
-```
-set "ai=qianwen"					                :: 请替换为你的实际模型产品
-set "model=qwen-max"                                :: 请替换为你的实际模型类型
-set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
-```    				
-
-腾讯混元配置如下：
-```
-set "ai=hunyuan"							    	:: 请替换为你的实际模型产品
-set "model=hunyuan-t1-latest"  						:: 请替换为你的实际模型类型
-set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
-```
-
-讯飞星火配置如下：
-```
-set "ai=xinghuo"					    			:: 请替换为你的实际模型产品
-set "model=qwen-max"    							:: 请替换为你的实际模型类型
-set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	    :: 请替换为你的实际API密钥
-```
-
-kimi配置如下：
-```
-set "ai=kimi"							        :: 请替换为你的实际模型产品
-set "model=kimi-latest"  						:: 请替换为你的实际模型类型
-set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API密钥
-```
+注意：解压出来的database目录是我自己用AI跑的中英文对照库。做缓存使用。你可能想用自己的模型跑，不需要使用我的已有翻译数据，可以删除这个目录内容。
 
 
-### 4. 执行bat脚本翻译gamelist文件
+### 3. 执行bat脚本翻译gamelist文件
 
-打开Windows Powershell命令行，拖入GamelistToZh.bat脚本文件，输入空格，拖入需要翻译的gamelist.xml文件，输入回车,即可执行翻译脚本进行翻译。
+打开Windows Powershell命令行，拖入解压出来的GamelistToZh.bat脚本文件，输入空格，拖入需要翻译的本地gamelist.xml文件，输入回车,即可执行脚本进行翻译。
 
 翻译命令如图：
 
@@ -120,7 +99,8 @@ set "api_key=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  	:: 请替换为你的实际API�
 
 ![info3.png](images/info3.png)
 
-### 5. 翻译效果
+
+### 4. 翻译效果展示
 
 Retrobat加载翻译后的gamelist.xml文件效果如下：
 
@@ -166,5 +146,26 @@ Donkey Kong is also notable for being one of the first complete narratives in vi
 		<players>1</players>
 	</game>
 ```
+
+
+
+## 一些不重要的说明
+
+因为最近需要整理复古怀旧游戏的ROM，没找到好用的gamelist游戏列表中文翻译软件。本人也不太懂代码，出资49元找计算机系的学生抽空帮忙写了个python脚本工具。代码已经买断可以随意修改使用。
+
+1. 首先需要你有一个AI大语言模型的账号，翻译脚本依赖AI大模型的API调用。
+2. 目前支持6家：deepseek，豆包，通义千问，腾讯混元，讯飞星火，kimi。你可以随便选一家去申请个免费试用账号来使用。
+3. 建议使用各家的推理模型。虽然速度比较慢但是准确率有保证。基础模型翻译速度快但对游戏名称翻译可能不准确或无法识别。
+4. 推荐大模型为DeepSeek-V3搭配联网插件，大概平均7秒翻译完一个游戏。速度仅供参考，准确度取决于你用的模型。
+5. 翻译时默认先查database目录下面的本地中英文对照库的csv文件集，不想走本地缓存的删掉database目录内容即可。
+6. database目录是本人使用DeepSeek-V3，基于NoIntro的ROM集和ScreenScraper的元数据跑的csv文件集合。
+7. database目录下本人可能会不定期更新本地中英文对照数据库(也可能不更新...）。
+8. 翻译完成后，生成新的gamelist.xml。同时原始的gamelist.xml会在Rom目录备份。
+9. 代码是买的，本人不懂技术，没有技术支持，有啥问题还请自行解决。
+10. 没了
+
+
+
+
 
 
