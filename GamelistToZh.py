@@ -167,6 +167,8 @@ def translate_content(ai_type, api_key, model, name, desc):
             try:
                 translated_text = translated_text.lstrip('```json').rstrip('```')
                 result = json.loads(translated_text)
+                if 'name_zh' in result and 'desc_zh' in result:
+                    return result, elapsed
             except json.JSONDecodeError:
                 try:
                     # 如果不是JSON，尝试手动提取
